@@ -1,5 +1,7 @@
 package Utils;
 
+import com.google.common.primitives.UnsignedBytes;
+
 import java.nio.ByteBuffer;
 
 public class ByteOperation {

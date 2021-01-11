@@ -82,7 +82,7 @@ public class GaloisField {
             return 0;
         } else {
             while(in != 1){
-                c = (byte) fastGaloisMultiplication(c, 2);
+                c = (byte) galoisMultiplication(c, 2);
                 in--;
             }
         }
