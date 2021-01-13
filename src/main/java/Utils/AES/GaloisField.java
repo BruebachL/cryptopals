@@ -2,7 +2,6 @@ package Utils.AES;
 
 import Utils.ByteOperation;
 import com.google.common.primitives.UnsignedBytes;
-import jdk.jfr.Unsigned;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -21,10 +20,16 @@ public class GaloisField {
 
     public ArrayList<Integer> logarithmicTable = new ArrayList<Integer>(Collections.nCopies(256, 0));
 
+    public ArrayList<Integer> sBox = new ArrayList<>();
+
+    public ArrayList<Integer> invSbox = new ArrayList<Integer>(Collections.nCopies(256, 0));
+
     public GaloisField(int generator){
         chosenGenerator = generator;
         createExponentTable();
         createLogTable();
+        createSBox();
+        createInvSBox();
     }
 
     public byte galoisAdd(byte a, byte b){
@@ -87,7 +92,7 @@ public class GaloisField {
         return c;
     }
 
-    public int sbox(int in){
+    public int calculateSBoxEntry(int in){
         int c, s, x;
         s = x = galoisMultiplicativeInverse(in);
         for(c = 0; c < 4; c++){
@@ -116,6 +121,18 @@ public class GaloisField {
         }
     }
 
+    public void createSBox(){
+        for(int i = 0; i < 256; i++){
+            sBox.add(calculateSBoxEntry(i));
+        }
+    }
+
+    public void createInvSBox(){
+        for(int i = 0; i < sBox.size(); i++){
+            invSbox.set(sBox.get(i), i);
+        }
+    }
+
     public void printLogTable(){
         System.out.println("Log table for " + chosenGenerator);
         StringJoiner sj = new StringJoiner(",");
@@ -136,6 +153,30 @@ public class GaloisField {
             if((i+1)%16==0){
                 System.out.println(sb.toString());
                 sb = new StringJoiner(",");
+            }
+        }
+    }
+
+    public void printSBoxTable(){
+        System.out.println("SBox for " + chosenGenerator);
+        StringJoiner sj = new StringJoiner(",");
+        for(int i = 0 ; i < sBox.size(); i++){
+            sj.add(String.format("0x%02X", sBox.get(i)));
+            if((i+1)%16==0){
+                System.out.println(sj.toString());
+                sj = new StringJoiner(",");
+            }
+        }
+    }
+
+    public void printInvSBoxTable(){
+        System.out.println("Inverted SBox for " + chosenGenerator);
+        StringJoiner sj = new StringJoiner(",");
+        for(int i = 0 ; i < invSbox.size(); i++){
+            sj.add(String.format("0x%02X", invSbox.get(i)));
+            if((i+1)%16==0){
+                System.out.println(sj.toString());
+                sj = new StringJoiner(",");
             }
         }
     }

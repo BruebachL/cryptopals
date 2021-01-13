@@ -1,10 +1,7 @@
 package Sets;
 
 import Utils.AES.AES;
-import Utils.AES.GaloisField;
 import Utils.ByteOperation;
-
-import java.util.Collections;
 
 public class Set2 {
     public static void main(String[] args){
@@ -18,9 +15,9 @@ public class Set2 {
         System.out.println(paddedMessage.length);
 
         AES testCypher = new AES(128);
-        byte[] key = new byte[]{'T', 'h', 'a', 't', 's', ' ', 'm', 'y', ' ', 'K', 'u', 'n', 'g', ' ', 'F', 'u'};
         byte[] plaintext = new byte[]{'T', 'w', 'o', ' ', 'O', 'n', 'e', ' ', 'N', 'i', 'n', 'e', ' ', 'T', 'w', 'o'};
-        byte[] cypherText = testCypher.Encrypt(plaintext, key);
+        byte[] key = new byte[]{'T', 'h', 'a', 't', 's', ' ', 'm', 'y', ' ', 'K', 'u', 'n', 'g', ' ', 'F', 'u'};
+        byte[] cypherText = testCypher.encrypt(plaintext, key);
         int c = 0;
         for(int i = 0; i < cypherText.length; i++){
             System.out.printf("0x%02X ",cypherText[i]);
@@ -29,6 +26,12 @@ public class Set2 {
                 System.out.println();
                 c = 0;
             }
+        }
+
+        System.out.println();
+        byte[] decryptedPlaintext = testCypher.decrypt(cypherText, key);
+        for(byte plainChar : decryptedPlaintext){
+            System.out.print((char) plainChar);
         }
     }
 }
