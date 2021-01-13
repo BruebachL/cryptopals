@@ -70,40 +70,16 @@ public class AES {
     public byte[] Encrypt(byte[] message, byte[] key){
         state = ByteOperation.copyToColumnMajorOrderArray(message, numberOfWordsInBlock);
 
-        //testKeyExpansion();
-
-        System.out.println("Expanded Key");
         expandedKey = KeyExpansion128Bit(key);
-        int c = 0;
-        for(int i = 0; i < expandedKey.length; i++){
-            System.out.printf("0x%02X ", expandedKey[i]);
-            c++;
-            if(c > 15){
-                System.out.println();
-                c = 0;
-            }
-        }
-        System.out.println();
         expandedKeyCount = 0;
 
-        dumpState();
-        System.out.println("Adding round key");
         AddRoundKey();
-        dumpState();
 
         for(int i = 1; i<numberOfRounds;i++){
-            System.out.println("SubBytes " + i);
             SubBytes();
-            dumpState();
-            System.out.println("ShiftRows " + i);
             ShiftRows();
-            dumpState();
-            System.out.println("MixColumns " + i);
             MixColumns();
-            dumpState();
-            System.out.println("RoundKey " + i);
             AddRoundKey();
-            dumpState();
         }
 
         // final round
@@ -139,74 +115,6 @@ public class AES {
             }
         }
         return expandedKey;
-    }
-
-    public static void testKeyExpansion(){
-        byte[] initialVector = new byte[16];
-
-        for(byte iv : initialVector){
-            iv = 0x00;
-        }
-
-        AES test = new AES(128);
-
-        byte[] bytes = test.KeyExpansion128Bit(initialVector);
-        int c = 0;
-        for(int i = 0; i < bytes.length; i++){
-            System.out.printf("0x%02X ", bytes[i]);
-            c++;
-            if(c > 15){
-                System.out.println();
-                c = 0;
-            }
-        }
-        for(int i = 0; i < bytes.length; i++){
-            String expected = expectedKeyForAllZeroes.get(i);
-            String actual = String.format("0x%02X", bytes[i]);
-            if(!expected.equals(actual)){
-                System.out.println("Found not matching at position " + i + " Expected: " + expected + " Actual: " + actual);
-            }
-        }
-
-        System.out.println();
-
-        initialVector = new byte[16];
-
-        Arrays.fill(initialVector, (byte) 0xff);
-
-        test = new AES(128);
-
-        bytes = test.KeyExpansion128Bit(initialVector);
-        c = 0;
-        for(int i = 0; i < bytes.length; i++){
-            System.out.printf("0x%02X ", bytes[i]);
-            c++;
-            if(c > 15){
-                System.out.println();
-                c = 0;
-            }
-        }
-        for(int i = 0; i < bytes.length; i++){
-            String expected = expectedKeyForAllFs.get(i);
-            String actual = String.format("0x%02X", bytes[i]);
-            if(!expected.equals(actual)){
-                System.out.println("Found not matching at position " + i + " Expected: " + expected + " Actual: " + actual);
-            }
-        }
-    }
-
-    public void dumpState(){
-        int c = 0;
-        for(int d = 0; d < 4; d++) {
-            for (int i = 0; i < state.length; i++) {
-                System.out.printf("0x%02X ", state[d][i]);
-                c++;
-                if (c > 3) {
-                    System.out.println();
-                    c = 0;
-                }
-            }
-        }
     }
 
     public int scheduleCore(int in, int i){

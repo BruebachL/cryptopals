@@ -14,12 +14,10 @@ public class ByteOperation {
             requiredPadSize = messageToPad.length % blockSize;
         }
 
-        System.out.println(requiredPadSize);
         byte[] padding = new byte[requiredPadSize];
 
         for(int i = 0; i<padding.length;i++){
             padding[i] = (byte) requiredPadSize;
-            System.out.println(padding[i]);
         }
 
         byte[] buffer = new byte[messageToPad.length+padding.length];

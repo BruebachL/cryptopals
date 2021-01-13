@@ -51,10 +51,8 @@ public class GaloisField {
     }
 
     public int fastGaloisMultiplication(int a, int b){
-        a = ByteOperation.negativeByteToPositiveInt(a);
-        b = ByteOperation.negativeByteToPositiveInt(b);
-        a = logarithmicTable.get(a);
-        b = logarithmicTable.get(b);
+        a = logarithmicTable.get(UnsignedBytes.toInt((byte) a));
+        b = logarithmicTable.get(UnsignedBytes.toInt((byte) b));
         return exponentiationTable.get((a+b)%255);
     }
 
@@ -82,7 +80,7 @@ public class GaloisField {
             return 0;
         } else {
             while(in != 1){
-                c = (byte) galoisMultiplication(c, 2);
+                c = (byte) fastGaloisMultiplication(c, 2);
                 in--;
             }
         }
