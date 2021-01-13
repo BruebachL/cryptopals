@@ -17,9 +17,9 @@ public class GaloisField {
                                                                         207, 208, 214, 215, 218, 220, 221, 222, 226, 227, 229, 230, 231, 233, 234, 235, 238, 240, 241, 244, 245, 246, 248, 251, 253, 254, 255));
     int chosenGenerator;
 
-    ArrayList<Integer> exponentiationTable = new ArrayList<>();
+    public ArrayList<Integer> exponentiationTable = new ArrayList<>();
 
-    ArrayList<Integer> logarithmicTable = new ArrayList<Integer>(Collections.nCopies(256, 0));
+    public ArrayList<Integer> logarithmicTable = new ArrayList<Integer>(Collections.nCopies(256, 0));
 
     public GaloisField(int generator){
         chosenGenerator = generator;
@@ -72,7 +72,7 @@ public class GaloisField {
         if (a == 0) {
             return 0;
         } else {
-            return exponentiationTable.get(255 - logarithmicTable.get(UnsignedBytes.toInt((byte) a)));
+            return exponentiationTable.get(255 - logarithmicTable.get(a));
         }
     }
 
@@ -106,14 +106,15 @@ public class GaloisField {
     public void createExponentTable(){
         int init = 0x01;
         exponentiationTable.add(init);
-        for(int i = 0; i<=255;i++){
+        for(int i = 0; i<255;i++){
             exponentiationTable.add(galoisMultiplication(exponentiationTable.get(exponentiationTable.size()-1),chosenGenerator));
         }
     }
 
     public void createLogTable(){
         for(int i = 0; i < exponentiationTable.size(); i++){
-            logarithmicTable.set(exponentiationTable.get(i), i);
+            Integer integer = exponentiationTable.get(i);
+            logarithmicTable.set(integer, i);
         }
     }
 

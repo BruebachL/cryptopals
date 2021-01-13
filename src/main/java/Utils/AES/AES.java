@@ -1,10 +1,15 @@
 package Utils.AES;
 
 import Utils.ByteOperation;
+import com.google.common.primitives.UnsignedBytes;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
+
+/*
+    WARNING: This source code may ONLY be used for academic purposes. It is vulnerable to a LOT of side-channel attacks.
+    Never implement your own crypto. Only use tested open-source implementations.
+ */
 
 public class AES {
 
@@ -36,11 +41,13 @@ public class AES {
 
     byte[] expandedKey;
 
+    int expandedKeyCount = 0;
+
     int keyLengthInBits;
 
     int numberOfWordsInBlock = 4;
 
-    byte[][] state = new byte[4][numberOfWordsInBlock];
+    public byte[][] state = new byte[4][numberOfWordsInBlock];
 
     int numberOfRounds;
 
@@ -60,30 +67,51 @@ public class AES {
         }
     }
 
-    public static byte[] Encrypt(byte[] message, byte[] key){
-        int numberOfRounds = 1;
+    public byte[] Encrypt(byte[] message, byte[] key){
+        state = ByteOperation.copyToColumnMajorOrderArray(message, numberOfWordsInBlock);
 
-        byte[] state = new byte[message.length];
+        //testKeyExpansion();
 
-        System.arraycopy(message, 0, state, 0, message.length);
+        System.out.println("Expanded Key");
+        expandedKey = KeyExpansion128Bit(key);
+        int c = 0;
+        for(int i = 0; i < expandedKey.length; i++){
+            System.out.printf("0x%02X ", expandedKey[i]);
+            c++;
+            if(c > 15){
+                System.out.println();
+                c = 0;
+            }
+        }
+        System.out.println();
+        expandedKeyCount = 0;
 
-        testKeyExpansion();
+        dumpState();
+        System.out.println("Adding round key");
+        AddRoundKey();
+        dumpState();
 
-        AddRoundKey(state, key);
-
-        for(int i = 0; i<numberOfRounds;i++){
-            SubBytes(state);
-            ShiftRows(state);
+        for(int i = 1; i<numberOfRounds;i++){
+            System.out.println("SubBytes " + i);
+            SubBytes();
+            dumpState();
+            System.out.println("ShiftRows " + i);
+            ShiftRows();
+            dumpState();
+            System.out.println("MixColumns " + i);
             MixColumns();
-            AddRoundKey(state, key);
+            dumpState();
+            System.out.println("RoundKey " + i);
+            AddRoundKey();
+            dumpState();
         }
 
         // final round
-        SubBytes(state);
-        ShiftRows(state);
-        AddRoundKey(state, key);
+        SubBytes();
+        ShiftRows();
+        AddRoundKey();
 
-        return state;
+        return ByteOperation.copyFromColumnMajorOrderArray(state);
     }
 
     public byte[] KeyExpansion128Bit(byte[] initialVector){
@@ -167,30 +195,71 @@ public class AES {
         }
     }
 
+    public void dumpState(){
+        int c = 0;
+        for(int d = 0; d < 4; d++) {
+            for (int i = 0; i < state.length; i++) {
+                System.out.printf("0x%02X ", state[d][i]);
+                c++;
+                if (c > 3) {
+                    System.out.println();
+                    c = 0;
+                }
+            }
+        }
+    }
+
     public int scheduleCore(int in, int i){
         byte[] inArray = ByteOperation.fromIntToByteArray(in);
         inArray = ByteOperation.rotate(inArray);
         for(int a = 0; a < 4; a++){
-            inArray[a] = (byte) gf.sbox(inArray[a]);
+            inArray[a] = (byte) gf.sbox(UnsignedBytes.toInt(inArray[a]));
         }
         inArray[0] ^= gf.rcon((byte) i);
         return ByteOperation.fromByteArrayToInt(inArray);
     }
 
-    public static void SubBytes(byte[] state){
-
+    public void SubBytes(){
+        for(int r = 0; r < 4; r++){
+            for(int c = 0; c < numberOfWordsInBlock; c++){
+                state[r][c] = (byte) gf.sbox(UnsignedBytes.toInt(state[r][c]));
+            }
+        }
     }
 
-    public static void ShiftRows(byte[] state){
-
+    public void ShiftRows(){
+        byte[] t = new byte[4];
+        for(int i = 1; i < 4; i++){
+            for(int c = 0; c < numberOfWordsInBlock; c++){
+                t[c] = state[i][(i+c)%numberOfWordsInBlock];
+            }
+            if (numberOfWordsInBlock >= 0) System.arraycopy(t, 0, state[i], 0, numberOfWordsInBlock);
+        }
     }
 
-    public static void MixColumns(){
-
+    public void MixColumns(){
+        byte[] sp = new byte[4];
+        for(int c = 0; c < 4; c++){
+            sp[0] = (byte) ((gf.galoisMultiplication(0x02, state[0][c])) ^ (gf.galoisMultiplication(0x03, state[1][c])) ^
+                        state[2][c] ^ state[3][c]);
+            sp[1] = (byte) (state[0][c] ^ (gf.galoisMultiplication(0x02, state[1][c])) ^
+                    (gf.galoisMultiplication(0x03, state[2][c])) ^ state[3][c]);
+            sp[2] = (byte) (state[0][c] ^ state[1][c] ^
+                    gf.galoisMultiplication(0x02, state[2][c]) ^ gf.galoisMultiplication(0x03, state[3][c]));
+            sp[3] = (byte) (gf.galoisMultiplication(0x03, state[0][c]) ^ state[1][c] ^
+                    state[2][c] ^ gf.galoisMultiplication(0x02, state[3][c]));
+            for(int i = 0; i < 4; i++){
+                state[i][c] = sp[i];
+            }
+        }
     }
 
-    public static void AddRoundKey(byte[] state, byte[] key){
-
+    public void AddRoundKey(){
+        for(int i = 0; i < numberOfWordsInBlock; i++){
+            for(int c = 0; c < 4; c++){
+                state[c][i] = (byte) (state[c][i] ^ expandedKey[expandedKeyCount++]);
+            }
+        }
     }
 
 }

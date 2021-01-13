@@ -64,4 +64,26 @@ public class ByteOperation {
            return signedByte + 255;
        }
     }
+
+    public static byte[][] copyToColumnMajorOrderArray(byte[] in, int wordsInBlock){
+        byte[][] out = new byte[4][wordsInBlock];
+        int inPosition = 0;
+        for(int i = 0; i < 4; i++){
+            for(int c = 0; c < wordsInBlock; c++){
+                out[c][i] = in[inPosition++];
+            }
+        }
+        return out;
+    }
+
+    public static byte[] copyFromColumnMajorOrderArray(byte[][] in){
+        byte[] out = new byte[in[0].length * in.length];
+        int outPosition = 0;
+        for(int i = 0; i < in.length; i++){
+            for(int c = 0; c < in[0].length; c++){
+                out[outPosition++] = in[c][i];
+            }
+        }
+        return out;
+    }
 }
