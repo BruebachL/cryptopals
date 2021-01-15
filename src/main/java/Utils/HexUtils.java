@@ -3,6 +3,8 @@ package Utils;
 import org.jetbrains.annotations.NotNull;
 
 public class HexUtils {
+
+    //TODO this is a duplicate of toByteArray
     public static byte[] decodeHexString(String hexString) {
         if (hexString.length() % 2 == 1) {
             throw new IllegalArgumentException(
@@ -39,13 +41,14 @@ public class HexUtils {
     }
 
     public static String encodeHexString(byte[] byteArray) {
-        StringBuffer hexStringBuffer = new StringBuffer();
-        for (int i = 0; i < byteArray.length; i++) {
-            hexStringBuffer.append(byteToHex(byteArray[i]));
+        StringBuilder hexStringBuffer = new StringBuilder();
+        for (byte b : byteArray) {
+            hexStringBuffer.append(byteToHex(b));
         }
         return hexStringBuffer.toString();
     }
 
+    //TODO this is a duplicate of decodeHexString
     public static byte[] toByteArray(String str)
     {
         if (str.length() % 2 != 0)

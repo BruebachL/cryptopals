@@ -6,13 +6,12 @@ public class StringUtils {
     public static int scoreStrings(byte[] hexDecodedString) {
         String ETAOIN = "etaoin shrdlcuETAOINSHRDLCU";
         int encodedStringHighScore = 0;
-        int Stringscore = 0;
+        int Stringscore;
         String encodedBytes = new String(hexDecodedString);
         Stringscore = 0;
             for (int i = 0; i < encodedBytes.length(); i++) {
                 for (int cnt = 0; cnt < ETAOIN.length(); cnt++) {
                     if (encodedBytes.charAt(i) == ETAOIN.charAt(cnt)) {
-
                         Stringscore = Stringscore + (100 - cnt);
                     }
                 }

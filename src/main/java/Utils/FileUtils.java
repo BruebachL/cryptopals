@@ -3,24 +3,25 @@ package Utils;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 
 public class FileUtils {
     public static byte[] readBase64(String file)
     {
-        String filetext = "";
+        StringBuilder filetext = new StringBuilder();
         String line;
         try
         {
-            BufferedReader input = new BufferedReader(new FileReader(new File(file)));
+            BufferedReader input = new BufferedReader(new FileReader(file));
             while ((line = input.readLine()) != null)
             {
-                filetext += line;
+                filetext.append(line);
             }
             input.close();
         } catch (IOException e)
-        {}
-        return Base64Conversion.Base64toBytes(filetext);
+        {
+            System.out.println(e.getMessage());
+        }
+        return Base64Conversion.Base64toBytes(filetext.toString());
     }
 
     public static boolean detectECBblock(byte[][] in){
