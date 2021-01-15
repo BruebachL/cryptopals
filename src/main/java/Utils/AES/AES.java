@@ -43,6 +43,56 @@ public class AES {
         }
     }
 
+    public byte[] ecbModeEncryption(byte[] message, byte[] key){
+        byte[] encryptedOut;
+        if(message.length % 16 > 0){
+            encryptedOut = new byte[(message.length/16 + 1)*(16)];
+        }else{
+            encryptedOut = new byte[message.length];
+        }
+        byte[] currentBlock = new byte[16];
+
+        for(int i = 0; i < message.length/16; i++){
+            System.arraycopy(message, i * 16, currentBlock, 0, 16);
+            currentBlock = encrypt(currentBlock, key);
+            System.arraycopy(currentBlock, 0, encryptedOut, i * 16, 16);
+        }
+        if(message.length % 16 > 0){
+            currentBlock = new byte[message.length % 16];
+            System.arraycopy(message, (message.length/16)*16, currentBlock, 0, message.length % 16);
+            currentBlock = ByteOperation.padPKCS7(currentBlock, 16);
+            currentBlock = encrypt(currentBlock, key);
+            System.arraycopy(currentBlock, 0, encryptedOut,(message.length/16)*16, 16);
+        }
+
+        return encryptedOut;
+    }
+
+    public byte[] ecbModeDecryption(byte[] message, byte[] key){
+        byte[] decryptedOut;
+        if(message.length % 16 > 0){
+            decryptedOut = new byte[(message.length/16 + 1)*(16)];
+        }else{
+            decryptedOut = new byte[message.length];
+        }
+        byte[] currentBlock = new byte[16];
+
+        for(int i = 0; i < message.length/16; i++){
+            System.arraycopy(message, i * 16, currentBlock, 0, 16);
+            currentBlock = decrypt(currentBlock, key);
+            System.arraycopy(currentBlock, 0, decryptedOut, i * 16, 16);
+        }
+        if(message.length % 16 > 0){
+            currentBlock = new byte[message.length % 16];
+            System.arraycopy(message, (message.length/16)*16, currentBlock, 0, message.length % 16);
+            currentBlock = ByteOperation.padPKCS7(currentBlock, 16);
+            currentBlock = decrypt(currentBlock, key);
+            System.arraycopy(currentBlock, 0, decryptedOut,(message.length/16)*16, 16);
+        }
+
+        return decryptedOut;
+    }
+
     public byte[] encrypt(byte[] message, byte[] key){
         state = ByteOperation.copyToColumnMajorOrderArray(message, numberOfWordsInBlock);
 

@@ -37,7 +37,6 @@ public class StringUtils {
         int count = 0;
         for (byte b : arr)
         {
-            // stuff is weighted how I felt like it
             if ((b >= 'a' && b <= 'z') || b == ' ')
                 count += 4;
             if ((b >= 'A' && b <= 'Z') || b == '\'' || b == '.' || b == '!' || b == '?')
@@ -87,11 +86,7 @@ public class StringUtils {
                     bestGuess = encodedBytes;
                     key = letter;
                 }
-
-
             }
-
-
             letter++;
         }
         return bestGuess;

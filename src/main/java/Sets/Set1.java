@@ -1,24 +1,16 @@
 package Sets;
 
 import Utils.*;
-import Utils.AES.GaloisField;
-import com.sun.nio.sctp.AbstractNotificationHandler;
+import Utils.AES.AES;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.security.KeyPair;
-import java.util.Scanner;
 import java.util.*;
-
-import static Utils.Base64Conversion.byteToHex;
-import static Utils.Base64Conversion.encodeHexString;
 
 
 public class Set1 {
     public static void main(String[] args) throws Exception {
-        Scanner scanner = new Scanner(System.in);
+        /*Scanner scanner = new Scanner(System.in);
         System.out.println("Should get: SSdtIGtpbGxpbmcgeW91ciBicmFpbiBsaWtlIGEgcG9pc29ub3VzIG11c2hyb29t");
         System.out.print("Please enter the hex String: ");
         String hexString = scanner.nextLine();
@@ -42,18 +34,19 @@ public class Set1 {
 
         for (byte b : test) {
             System.out.println(Integer.toBinaryString(b));
-        }
-
+        }*/
+        //challenge7();
+        challenge8();
     }
 
     public static void challenge4() throws Exception {
-        BufferedReader c4Input = new BufferedReader(new FileReader(new File("C:\\Users\\Ascor\\Documents\\4.txt")));
+        BufferedReader c4Input = new BufferedReader(new FileReader("C:\\Users\\Ascor\\Documents\\4.txt"));
         String c4Line;
         System.out.println("possible decoded values for ciphertext: ");
         int c4LineNum = 1;
         while ((c4Line = c4Input.readLine()) != null) {
             for (int i = 0; i < 255; i++) {
-                byte[] decoded = XORCypher.single(Base64Conversion.decodeHexString(c4Line), (byte) i);
+                byte[] decoded = XORCypher.single(HexUtils.decodeHexString(c4Line), (byte) i);
                 double score = StringUtils.scoreStrings(decoded);
                 String line = new String(decoded, StandardCharsets.UTF_8);
                 if (score > 1900)
@@ -68,7 +61,7 @@ public class Set1 {
         byte[] c4Plaintext = ("Burning 'em, if you ain't quick and nimble I go crazy when I hear a cymbal").getBytes(StandardCharsets.UTF_8);
         byte[] c4Key = "ICE".getBytes(StandardCharsets.UTF_8);
         System.out.println("Should be: 0b3637272a2b2e63622c2e69692a23693a2a3c6324202d623d63343c2a26226324272765272a282b2f20430a652e2c652a3124333a653e2b2027630c692b20283165286326302e27282f");
-        System.out.println("We got:    " + Base64Conversion.encodeHexString(XORCypher.repeating(c4Plaintext, c4Key)));
+        System.out.println("We got:    " + HexUtils.encodeHexString(XORCypher.repeating(c4Plaintext, c4Key)));
     }
 
     public static void challenge6() throws Exception {
@@ -138,6 +131,28 @@ public class Set1 {
             System.out.println("Guessed Key: " + StringUtils.toNormalStr(key));
             System.out.println("Decrypted message:");
             System.out.println(StringUtils.toNormalStr(XORCypher.repeating(ciphertext, key)));
+        }
+    }
+
+    public static void challenge7() {
+        byte[] cypherText = FileUtils.readBase64("src/main/resources/cyphertexts/7.txt");
+        AES aes = new AES(128);
+        cypherText = aes.ecbModeDecryption(cypherText, "YELLOW SUBMARINE".getBytes());
+        for (byte plainChar : cypherText) {
+            System.out.print((char) plainChar);
+        }
+    }
+
+    public static void challenge8() throws Exception {
+        String[] c8Lines = FileUtils.readLines("src/main/resources/cyphertexts/8.txt");
+        for (int lineNumber = 0; lineNumber < c8Lines.length; lineNumber++) {
+            String[] splitLine = HexUtils.splitStringToHexStringArray(c8Lines[lineNumber]);
+
+            byte[][] splitBytes = HexUtils.hexStringArrayToSixteenByteChunkByteHyperArray(splitLine);
+
+            if(FileUtils.detectECBblock(splitBytes)){
+                System.out.println("Line " + (lineNumber + 1) + " could be ECB");
+            }
         }
     }
 }
