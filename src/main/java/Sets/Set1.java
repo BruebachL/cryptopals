@@ -32,8 +32,8 @@ public class Set1 {
     public static void challenge1() {
         String hexString = "49276d206b696c6c696e6720796f757220627261696e206c696b65206120706f69736f6e6f7573206d757368726f6f6d";
         System.out.println("Hex -> Base64: " + hexString);
-        System.out.println("Should get: SSdtIGtpbGxpbmcgeW91ciBicmFpbiBsaWtlIGEgcG9pc29ub3VzIG11c2hyb29t");
-        System.out.println("Got: " + Base64Conversion.BytestoBase64(HexUtils.decodeHexString(hexString)));
+        System.out.printf("Should get:\t SSdtIGtpbGxpbmcgeW91ciBicmFpbiBsaWtlIGEgcG9pc29ub3VzIG11c2hyb29t \n");
+        System.out.printf("Got: \t\t" + Base64Conversion.BytestoBase64(HexUtils.decodeHexString(hexString)));
     }
 
     public static void challenge2(){

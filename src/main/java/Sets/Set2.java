@@ -4,21 +4,30 @@ import Utils.AES.AES;
 import Utils.ByteOperation;
 import Utils.FileUtils;
 
+import java.nio.charset.StandardCharsets;
+
 public class Set2 {
     public static void main(String[] args){
-        String message = "YELLOW SUBMARINE";
-        byte[] messageBytes = message.getBytes();
-        byte[] kungFuBytes = "Thats my Kung Fu".getBytes();
-        byte[] paddedMessage = ByteOperation.padPKCS7(messageBytes,20);
+        challenge9();
+        System.out.println();
+        challenge10();
+    }
+
+    public static void challenge9(){
+        byte[] paddedMessage = ByteOperation.padPKCS7("YELLOW SUBMARINE".getBytes(),20);
         for(byte messageByte : paddedMessage){
             System.out.printf("0x%02X ", messageByte);
         }
         System.out.println();
         System.out.println(paddedMessage.length);
-        byte[][] ecb = new byte[3][16];
-        ecb[0] = messageBytes;
-        ecb[1] = kungFuBytes;
-        ecb[2] = new byte[16];
-        System.out.println(FileUtils.detectECBblock(ecb));
+    }
+
+    public static void challenge10(){
+        byte[] cypherText = FileUtils.readBase64("src/main/resources/cyphertexts/10.txt");
+        AES aes = new AES(128);
+        cypherText = aes.cbcModeDecryption(cypherText, "YELLOW SUBMARINE".getBytes(), new byte[16]);
+        for (byte plainChar : cypherText) {
+            System.out.print((char) plainChar);
+        }
     }
 }
