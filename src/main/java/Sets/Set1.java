@@ -2,6 +2,7 @@ package Sets;
 
 import Utils.*;
 import Utils.AES.AES;
+import Utils.AES.AESKey;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -149,7 +150,7 @@ public class Set1 {
     public static void challenge7() {
         byte[] cypherText = FileUtils.readBase64("src/main/resources/cyphertexts/7.txt");
         AES aes = new AES(128);
-        cypherText = aes.ecbModeDecryption(cypherText, "YELLOW SUBMARINE".getBytes());
+        cypherText = aes.ecbModeDecryption(cypherText, new AESKey("YELLOW SUBMARINE".getBytes()));
         for (byte plainChar : cypherText) {
             System.out.print((char) plainChar);
         }

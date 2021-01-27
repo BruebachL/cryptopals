@@ -1,5 +1,10 @@
 package Utils;
 
+import Utils.AES.AES;
+import Utils.AES.AESKey;
+import org.checkerframework.checker.units.qual.A;
+
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 
 public class StringUtils {
@@ -89,5 +94,18 @@ public class StringUtils {
             letter++;
         }
         return bestGuess;
+    }
+
+    public static byte[] challenge16StringEncryption(String input, AESKey key, byte[] iv){
+        if(iv.length != 16){
+            throw new IllegalArgumentException("IV length should be 16");
+        }
+        input = input.replace('=', '.');
+        input = input.replace(';', '.');
+        input = "comment1=cooking%20MCs;userdata=" + input + ";comment2=%20like%20a%20pound%20of%20bacon";
+
+        byte[] toEncrypt = ByteOperation.padPKCS7(input.getBytes(), 16);
+        AES aes = new AES(128);
+        return aes.cbcModeEncryption(toEncrypt, key, iv);
     }
 }
