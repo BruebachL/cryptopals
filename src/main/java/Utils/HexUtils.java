@@ -48,6 +48,24 @@ public class HexUtils {
         return hexStringBuffer.toString();
     }
 
+    public static String encodeHexString(byte[] byteArray, int spacing) {
+        if(spacing < 1){
+            throw new IllegalArgumentException("Spacing can't be smaller than 1.");
+        }
+        StringBuilder hexStringBuffer = new StringBuilder();
+        int i = 0;
+        for (byte b : byteArray) {
+            hexStringBuffer.append(byteToHex(b));
+            if(i == spacing - 1){
+                hexStringBuffer.append(" ");
+                i = 0;
+            } else {
+                i++;
+            }
+        }
+        return hexStringBuffer.toString();
+    }
+
     //TODO this is a duplicate of decodeHexString
     public static byte[] toByteArray(String str)
     {

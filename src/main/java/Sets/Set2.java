@@ -14,7 +14,7 @@ import java.util.Random;
 
 public class Set2 {
     public static void main(String[] args) throws BadPaddingException {
-       /* challenge9();
+        challenge9();
         System.out.println();
         challenge10();
         System.out.println();
@@ -27,7 +27,7 @@ public class Set2 {
         challenge14();
         System.out.println();
         challenge15();
-        System.out.println();*/
+        System.out.println();
         challenge16();
     }
 

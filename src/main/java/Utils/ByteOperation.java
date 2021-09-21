@@ -1,6 +1,7 @@
 package Utils;
 
 import com.google.common.primitives.UnsignedBytes;
+import jdk.jfr.Unsigned;
 
 import javax.crypto.BadPaddingException;
 import java.nio.ByteBuffer;
@@ -16,7 +17,6 @@ public class ByteOperation {
         }else {
             requiredPadSize = blockSize - (messageToPad.length % blockSize);
         }
-
         byte[] padding = new byte[requiredPadSize];
 
         for(int i = 0; i<padding.length;i++){
@@ -37,8 +37,11 @@ public class ByteOperation {
     }
 
     public static byte[] stripAndValidatePKCS7padding(byte[] messageToPad, int blockSize) throws BadPaddingException {
-        int bytesOfPadding = messageToPad[messageToPad.length-1];
-        if(bytesOfPadding > 0 && bytesOfPadding < blockSize) {
+        int bytesOfPadding = UnsignedBytes.toInt(messageToPad[messageToPad.length-1]);
+        if(bytesOfPadding > blockSize || bytesOfPadding <= 0){
+            throw new BadPaddingException();
+        }
+        if(bytesOfPadding > 0) {
             for (int i = bytesOfPadding; i > 0; i--) {
                 if (messageToPad[messageToPad.length - i] != bytesOfPadding) {
                     throw new BadPaddingException();
