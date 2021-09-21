@@ -9,7 +9,7 @@ import javax.crypto.BadPaddingException;
 
 public class CBCPaddingOracle {
 
-	AES aes;
+	AESCBC aes;
 	AESKey key;
 	/**
 	 * Select random String, generate a random AES key (which it should save for all future encryptions), pad the string
@@ -30,19 +30,19 @@ public class CBCPaddingOracle {
 		"MDAwMDA5aXRoIG15IHJhZy10b3AgZG93biBzbyBteSBoYWlyIGNhbiBibG93" };
 
 	public CBCPaddingOracle() {
-		this.aes = new AES(128);
+		this.aes = new AESCBC(128);
 		this.key = new AESKey();
 	}
 
 	public AESSessionToken chooseAndEncryptSessionToken() {
 		String sessionToken = sessionTokens[(int) (Math.random() * sessionTokens.length)];
 		byte[] paddedPlain = ByteOperation.padPKCS7(sessionToken.getBytes(), 16);
-		return aes.cbcModeSessionTokenEncryption(paddedPlain, key, ByteOperation.generateRandomByteArray(16));
+		return aes.encryptSessionToken(paddedPlain, key, ByteOperation.generateRandomByteArray(16));
 	}
 
 	public boolean consumeEncryptedSessionToken(AESSessionToken encryptedSessionToken) throws BadPaddingException {
-		AESSessionToken decryptedSessionToken = aes.cbcModeSessionTokenDecryption(encryptedSessionToken.getMessage(),
-			key, encryptedSessionToken.getIV());
+		AESSessionToken decryptedSessionToken = aes.decryptSessionToken(encryptedSessionToken.getMessage(), key,
+			encryptedSessionToken.getIV());
 		ByteOperation.stripAndValidatePKCS7padding(decryptedSessionToken.getMessage(), 16);
 		return true;
 	}

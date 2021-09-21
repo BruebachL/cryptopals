@@ -27,12 +27,12 @@ public class BlockmodeDetectionOracle {
         System.arraycopy(message, 0, messageWithNonsensePadding, appendBefore, message.length);
         System.arraycopy(bytesToAppendAfter, 0, messageWithNonsensePadding, appendBefore + message.length, appendAfter);
 
-        AES algorithm = new AES(128);
         useEcb = (int) (Math.random() * 2);
         if(useEcb == 1){
-            return algorithm.ecbModeEncryption(messageWithNonsensePadding, randomKey);
+            return new AESECB(128).encrypt(messageWithNonsensePadding, randomKey);
         } else {
-            return algorithm.cbcModeEncryption(messageWithNonsensePadding, randomKey, ByteOperation.generateRandomByteArray(16));
+            return new AESCBC(128).encrypt(messageWithNonsensePadding, randomKey,
+                ByteOperation.generateRandomByteArray(16));
         }
     }
 
@@ -41,9 +41,7 @@ public class BlockmodeDetectionOracle {
         System.arraycopy(message, 0, forcedWithUnknownPlainTextAppended, 0, message.length);
         System.arraycopy(toAppend, 0, forcedWithUnknownPlainTextAppended, message.length, toAppend.length);
 
-        AES algorithm = new AES(128);
-
-        this.encryptedMessage = algorithm.ecbModeEncryption(forcedWithUnknownPlainTextAppended, randomKey);
+        this.encryptedMessage = new AESECB(128).encrypt(forcedWithUnknownPlainTextAppended, randomKey);
     }
 
     public void prependThenAppendThenEncryptUsingECBMode(byte[] message, byte[] toAppend){
@@ -52,9 +50,7 @@ public class BlockmodeDetectionOracle {
         System.arraycopy(messageWithRandomBytesPrepended, 0, forcedWithUnknownPlainTextAppended, 0, messageWithRandomBytesPrepended.length);
         System.arraycopy(toAppend, 0, forcedWithUnknownPlainTextAppended, messageWithRandomBytesPrepended.length, toAppend.length);
 
-        AES algorithm = new AES(128);
-
-        this.encryptedMessage = algorithm.ecbModeEncryption(forcedWithUnknownPlainTextAppended, randomKey);
+        this.encryptedMessage = new AESECB(128).encrypt(forcedWithUnknownPlainTextAppended, randomKey);
     }
 
     public byte[] prependDeterminedAmountOfRandomBytes(byte[] in){

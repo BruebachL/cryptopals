@@ -1,13 +1,12 @@
 package Sets;
 
-import Utils.*;
-import Utils.AES.AES;
+import Utils.AES.AESCBC;
+import Utils.AES.AESECB;
 import Utils.AES.AESKey;
 import Utils.AES.BlockmodeDetectionOracle;
-import org.checkerframework.checker.units.qual.A;
+import Utils.*;
 
 import javax.crypto.BadPaddingException;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
@@ -42,8 +41,8 @@ public class Set2 {
 
     public static void challenge10() {
         byte[] cypherText = FileUtils.readBase64("src/main/resources/cyphertexts/10.txt");
-        AES aes = new AES(128);
-        cypherText = aes.cbcModeDecryption(cypherText, new AESKey("YELLOW SUBMARINE".getBytes()), new byte[16]);
+        AESCBC aes = new AESCBC(128);
+        cypherText = aes.decrypt(cypherText, new AESKey("YELLOW SUBMARINE".getBytes()), new byte[16]);
         for (byte plainChar : cypherText) {
             System.out.print((char) plainChar);
         }
@@ -142,15 +141,16 @@ public class Set2 {
     public static void challenge13() throws BadPaddingException {
         // This challenge "breaks" if the userID happens to be less than 10 because then the padding no longer works.
         // The fix for this is trivial and not really the point of this challenge. Maybe if I have time for it later.
-        AES cypher = new AES(128);
+        AESECB cypher = new AESECB(128);
         AESKey key = new AESKey();
-        String plainText = profileForChallenge13("justpaddinadmin" + (char) 11 + (char) 11 + (char) 11 + (char) 11 +
-                (char) 11 + (char) 11 + (char) 11 + (char) 11 + (char) 11 + (char) 11 + (char) 11 + "abc");
-        byte[] cypherText = cypher.ecbModeEncryption(plainText.getBytes(), key);
+        String plainText = profileForChallenge13(
+            "justpaddinadmin" + (char) 11 + (char) 11 + (char) 11 + (char) 11 + (char) 11 + (char) 11 + (char) 11
+                + (char) 11 + (char) 11 + (char) 11 + (char) 11 + "abc");
+        byte[] cypherText = cypher.encrypt(plainText.getBytes(), key);
         byte[][] cypherChunks = ByteOperation.splitByteArrayInto16ByteChunkHyperArray(cypherText);
         cypherChunks[3] = cypherChunks[1];
         byte[] swappedCypher = ByteOperation.merge16ByteChunkHyperArray(cypherChunks);
-        byte[] decryptedText = ByteOperation.stripAndValidatePKCS7padding(cypher.ecbModeDecryption(swappedCypher, key), 16);
+        byte[] decryptedText = ByteOperation.stripAndValidatePKCS7padding(cypher.decrypt(swappedCypher, key), 16);
         String decryptedString = StringUtils.toNormalStr(decryptedText);
         KeyValueList kvList = new KeyValueList(decryptedString);
         System.out.println(kvList.toString());
@@ -249,12 +249,12 @@ public class Set2 {
     }
 
     public static void challenge16(){
-        AES aes = new AES(128);
+        AESCBC aes = new AESCBC(128);
         AESKey key = new AESKey();
         byte[] iv = ByteOperation.generateRandomByteArray(16);
         String userInput = ":admin<true";
         byte[] encrypted = StringUtils.challenge16StringEncryption(userInput, key, iv);
-        byte[] result = aes.cbcModeDecryption(encrypted, key, iv);
+        byte[] result = aes.decrypt(encrypted, key, iv);
         byte[][] resultChunks = ByteOperation.splitByteArrayInto16ByteChunkHyperArray(result);
         for(byte[] chunk : resultChunks) {
             for(byte b : chunk){

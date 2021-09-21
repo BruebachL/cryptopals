@@ -1,12 +1,6 @@
 package Sets;
 
-import Utils.AES.AES;
-import Utils.AES.AESKey;
-import Utils.AES.AESSessionToken;
 import Utils.AES.CBCPaddingOracle;
-import Utils.ByteOperation;
-import Utils.HexUtils;
-import com.google.common.primitives.UnsignedBytes;
 
 import javax.crypto.BadPaddingException;
 
@@ -14,6 +8,8 @@ public class Set3 {
 
 	public static void main(String[] args) throws BadPaddingException {
 		challenge17();
+		System.out.println();
+		challenge18();
 	}
 
 	/**
@@ -24,6 +20,14 @@ public class Set3 {
 	public static void challenge17() throws BadPaddingException {
 		CBCPaddingOracle paddingOracle = new CBCPaddingOracle();
 		paddingOracle.fullAttack();
+	}
+
+	/*
+	AES CTR Mode
+	 */
+
+	public static void challenge18() {
+
 	}
 }
 

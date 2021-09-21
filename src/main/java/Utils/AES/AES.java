@@ -1,8 +1,6 @@
 package Utils.AES;
 
 import Utils.ByteOperation;
-import Utils.HexUtils;
-import Utils.XORCypher;
 import com.google.common.primitives.UnsignedBytes;
 
 /*
@@ -40,182 +38,6 @@ public class AES {
                 numberOfRounds = 14;
                 break;
         }
-    }
-
-    public byte[] ecbModeEncryption(byte[] message, AESKey key){
-        byte[] encryptedOut;
-        if(message.length % 16 > 0){
-            encryptedOut = new byte[(message.length/16 + 1)*(16)];
-        }else{
-            encryptedOut = new byte[message.length];
-        }
-        byte[] currentBlock = new byte[16];
-
-        for(int i = 0; i < message.length/16; i++){
-            System.arraycopy(message, i * 16, currentBlock, 0, 16);
-            currentBlock = encrypt(currentBlock, key);
-            System.arraycopy(currentBlock, 0, encryptedOut, i * 16, 16);
-        }
-        if(message.length % 16 > 0){
-            currentBlock = new byte[message.length % 16];
-            System.arraycopy(message, (message.length/16)*16, currentBlock, 0, message.length % 16);
-            currentBlock = ByteOperation.padPKCS7(currentBlock, 16);
-            currentBlock = encrypt(currentBlock, key);
-            System.arraycopy(currentBlock, 0, encryptedOut,(message.length/16)*16, 16);
-        }
-
-        return encryptedOut;
-    }
-
-    public byte[] ecbModeDecryption(byte[] message, AESKey key){
-        byte[] decryptedOut;
-        if(message.length % 16 > 0){
-            decryptedOut = new byte[(message.length/16 + 1)*(16)];
-        }else{
-            decryptedOut = new byte[message.length];
-        }
-        byte[] currentBlock = new byte[16];
-
-        for(int i = 0; i < message.length/16; i++){
-            System.arraycopy(message, i * 16, currentBlock, 0, 16);
-            currentBlock = decrypt(currentBlock, key);
-            System.arraycopy(currentBlock, 0, decryptedOut, i * 16, 16);
-        }
-        if(message.length % 16 > 0){
-            currentBlock = new byte[message.length % 16];
-            System.arraycopy(message, (message.length/16)*16, currentBlock, 0, message.length % 16);
-            currentBlock = ByteOperation.padPKCS7(currentBlock, 16);
-            currentBlock = decrypt(currentBlock, key);
-            System.arraycopy(currentBlock, 0, decryptedOut,(message.length/16)*16, 16);
-        }
-
-        return decryptedOut;
-    }
-
-    public byte[] cbcModeEncryption(byte[] message, AESKey key, byte[] iv){
-        byte[] encryptedOut;
-        if(iv.length != 16){
-            throw new IllegalArgumentException();
-        }
-        byte[] chainBlock = iv;
-
-        if(message.length % 16 > 0){
-            encryptedOut = new byte[(message.length/16 + 1)*(16)];
-        }else{
-            encryptedOut = new byte[message.length];
-        }
-        byte[] currentBlock = new byte[16];
-
-        for(int i = 0; i < message.length/16; i++){
-            System.arraycopy(message, i * 16, currentBlock, 0, 16);
-            currentBlock = XORCypher.fixed(currentBlock, chainBlock);
-            currentBlock = encrypt(currentBlock, key);
-            System.arraycopy(currentBlock, 0, chainBlock, 0, 16);
-            System.arraycopy(currentBlock, 0, encryptedOut, i * 16, 16);
-        }
-        if(message.length % 16 > 0){
-            currentBlock = new byte[message.length % 16];
-            System.arraycopy(message, (message.length/16)*16, currentBlock, 0, message.length % 16);
-            currentBlock = ByteOperation.padPKCS7(currentBlock, 16);
-            currentBlock = encrypt(currentBlock, key);
-            System.arraycopy(currentBlock, 0, encryptedOut,(message.length/16)*16, 16);
-        }
-
-        return encryptedOut;
-    }
-
-    public byte[] cbcModeDecryption(byte[] message, AESKey key, byte[] iv){
-        byte[] decryptedOut;
-        if(iv.length != 16){
-            throw new IllegalArgumentException();
-        }
-        byte[] chainBlock = iv;
-        if(message.length % 16 > 0){
-            decryptedOut = new byte[(message.length/16 + 1)*(16)];
-        }else{
-            decryptedOut = new byte[message.length];
-        }
-        byte[] currentBlock = new byte[16];
-
-        for(int i = 0; i < message.length/16; i++){
-            System.arraycopy(message, i * 16, currentBlock, 0, 16);
-            currentBlock = decrypt(currentBlock, key);
-            currentBlock = XORCypher.fixed(currentBlock, chainBlock);
-            System.arraycopy(currentBlock, 0, decryptedOut, i * 16, 16);
-            System.arraycopy(message, i * 16, chainBlock, 0, 16);
-        }
-        if(message.length % 16 > 0){
-            currentBlock = new byte[message.length % 16];
-            System.arraycopy(message, (message.length/16)*16, currentBlock, 0, message.length % 16);
-            currentBlock = ByteOperation.padPKCS7(currentBlock, 16);
-            currentBlock = decrypt(currentBlock, key);
-            System.arraycopy(currentBlock, 0, decryptedOut,(message.length/16)*16, 16);
-        }
-
-        return decryptedOut;
-    }
-
-    public AESSessionToken cbcModeSessionTokenEncryption(byte[] message, AESKey key, byte[] iv){
-        byte[] encryptedOut;
-        if(iv.length != 16){
-            throw new IllegalArgumentException();
-        }
-        byte[] chainBlock = iv.clone();
-
-        if(message.length % 16 > 0){
-            encryptedOut = new byte[(message.length/16 + 1)*(16)];
-        }else{
-            encryptedOut = new byte[message.length];
-        }
-        byte[] currentBlock = new byte[16];
-
-        for(int i = 0; i < message.length/16; i++){
-            System.arraycopy(message, i * 16, currentBlock, 0, 16);
-            currentBlock = XORCypher.fixed(currentBlock, chainBlock);
-            currentBlock = encrypt(currentBlock, key);
-            System.arraycopy(currentBlock, 0, chainBlock, 0, 16);
-            System.arraycopy(currentBlock, 0, encryptedOut, i * 16, 16);
-        }
-        if(message.length % 16 > 0){
-            currentBlock = new byte[message.length % 16];
-            System.arraycopy(message, (message.length/16)*16, currentBlock, 0, message.length % 16);
-            currentBlock = ByteOperation.padPKCS7(currentBlock, 16);
-            currentBlock = encrypt(currentBlock, key);
-            System.arraycopy(currentBlock, 0, encryptedOut,(message.length/16)*16, 16);
-        }
-
-        return new AESSessionToken(iv, encryptedOut);
-    }
-
-    public AESSessionToken cbcModeSessionTokenDecryption(byte[] message, AESKey key, byte[] iv){
-        byte[] decryptedOut;
-        if(iv.length != 16){
-            throw new IllegalArgumentException();
-        }
-        byte[] chainBlock = iv.clone();
-        if(message.length % 16 > 0){
-            decryptedOut = new byte[(message.length/16 + 1)*(16)];
-        }else{
-            decryptedOut = new byte[message.length];
-        }
-        byte[] currentBlock = new byte[16];
-
-        for(int i = 0; i < message.length/16; i++){
-            System.arraycopy(message, i * 16, currentBlock, 0, 16);
-            currentBlock = decrypt(currentBlock, key);
-            currentBlock = XORCypher.fixed(currentBlock, chainBlock);
-            System.arraycopy(currentBlock, 0, decryptedOut, i * 16, 16);
-            System.arraycopy(message, i * 16, chainBlock, 0, 16);
-        }
-        if(message.length % 16 > 0){
-            currentBlock = new byte[message.length % 16];
-            System.arraycopy(message, (message.length/16)*16, currentBlock, 0, message.length % 16);
-            currentBlock = ByteOperation.padPKCS7(currentBlock, 16);
-            currentBlock = decrypt(currentBlock, key);
-            System.arraycopy(currentBlock, 0, decryptedOut,(message.length/16)*16, 16);
-        }
-
-        return new AESSessionToken(iv, decryptedOut);
     }
 
     public byte[] encrypt(byte[] message, AESKey key){
@@ -261,8 +83,6 @@ public class AES {
 
         return ByteOperation.copyFromColumnMajorOrderArray(state);
     }
-
-
 
     public void subBytes(){
         for(int r = 0; r < 4; r++){

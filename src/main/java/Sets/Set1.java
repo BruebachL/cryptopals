@@ -1,12 +1,15 @@
 package Sets;
 
-import Utils.*;
-import Utils.AES.AES;
+import Utils.AES.AESECB;
 import Utils.AES.AESKey;
+import Utils.*;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Map;
 
 import static Utils.HexUtils.encodeHexString;
 
@@ -149,8 +152,8 @@ public class Set1 {
 
     public static void challenge7() {
         byte[] cypherText = FileUtils.readBase64("src/main/resources/cyphertexts/7.txt");
-        AES aes = new AES(128);
-        cypherText = aes.ecbModeDecryption(cypherText, new AESKey("YELLOW SUBMARINE".getBytes()));
+        AESECB aes = new AESECB(128);
+        cypherText = aes.decrypt(cypherText, new AESKey("YELLOW SUBMARINE".getBytes()));
         for (byte plainChar : cypherText) {
             System.out.print((char) plainChar);
         }
