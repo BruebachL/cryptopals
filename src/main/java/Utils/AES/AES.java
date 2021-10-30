@@ -10,79 +10,82 @@ import com.google.common.primitives.UnsignedBytes;
 
 public class AES {
 
-    GaloisField gf = new GaloisField(229);
+	GaloisField gf = new GaloisField(229);
 
-    byte[] expandedKey;
+	AESKey key;
 
-    int expandedKeyCount = 0;
+	byte[] expandedKey;
 
-    int keyLengthInBits;
+	int expandedKeyCount = 0;
 
-    int numberOfWordsInBlock = 4;
+	int keyLengthInBits;
 
-    public byte[][] state = new byte[4][numberOfWordsInBlock];
+	int numberOfWordsInBlock = 4;
 
-    int numberOfRounds;
+	public byte[][] state = new byte[4][numberOfWordsInBlock];
 
-    public AES(int keyLengthInBits){
-        this.keyLengthInBits = keyLengthInBits;
-        switch(keyLengthInBits){
-            case 128:
-                numberOfRounds = 10;
-                break;
-                // Not implemented for now but included for completeness sake
-            case 192:
-                numberOfRounds = 12;
-                break;
-            case 256:
-                numberOfRounds = 14;
-                break;
-        }
-    }
+	int numberOfRounds;
 
-    public byte[] encrypt(byte[] message, AESKey key){
-        state = ByteOperation.copyToColumnMajorOrderArray(message, numberOfWordsInBlock);
+	public AES(AESKey key) {
+		this.key = key;
+		this.keyLengthInBits = key.initialKey.length * 8;
+		switch (keyLengthInBits) {
+		case 128:
+			numberOfRounds = 10;
+			break;
+		// Not implemented for now but included for completeness' sake
+		case 192:
+			numberOfRounds = 12;
+			break;
+		case 256:
+			numberOfRounds = 14;
+			break;
+		}
+	}
 
-        expandedKey = key.expandedKey;
-        expandedKeyCount = 0;
+	public byte[] encrypt(byte[] message) {
+		state = ByteOperation.copyToColumnMajorOrderArray(message, numberOfWordsInBlock);
 
-        addRoundKey();
+		expandedKey = key.expandedKey;
+		expandedKeyCount = 0;
 
-        for(int i = 1; i<numberOfRounds;i++){
-            subBytes();
-            shiftRows();
-            mixColumns();
-            addRoundKey();
-        }
+		addRoundKey();
 
-        // final round
-        subBytes();
-        shiftRows();
-        addRoundKey();
+		for (int i = 1; i < numberOfRounds; i++) {
+			subBytes();
+			shiftRows();
+			mixColumns();
+			addRoundKey();
+		}
 
-        return ByteOperation.copyFromColumnMajorOrderArray(state);
-    }
+		// final round
+		subBytes();
+		shiftRows();
+		addRoundKey();
 
-    public byte[] decrypt(byte[] cypher, AESKey key){
-        state = ByteOperation.copyToColumnMajorOrderArray(cypher, numberOfWordsInBlock);
+		return ByteOperation.copyFromColumnMajorOrderArray(state);
+	}
 
-        expandedKey = key.expandedKey;
-        expandedKeyCount = 4 * numberOfWordsInBlock * (numberOfRounds + 1) - 1;
+	public byte[] decrypt(byte[] cypher) {
+		state = ByteOperation.copyToColumnMajorOrderArray(cypher, numberOfWordsInBlock);
 
-        invAddRoundKey();
-        for(int round = numberOfRounds - 1; round >= 1; round--){
-            invShiftRows();
-            invSubBytes();
-            invAddRoundKey();
-            invMixColumns();
-        }
+		expandedKey = key.expandedKey;
+		expandedKeyCount = 4 * numberOfWordsInBlock * (numberOfRounds + 1) - 1;
 
-        invShiftRows();
-        invSubBytes();
-        invAddRoundKey();
+		invAddRoundKey();
+		for (int round = numberOfRounds - 1; round >= 1; round--) {
+			invShiftRows();
+			invSubBytes();
+			invAddRoundKey();
+			invMixColumns();
+		}
 
-        return ByteOperation.copyFromColumnMajorOrderArray(state);
-    }
+		invShiftRows();
+		invSubBytes();
+		invAddRoundKey();
+
+		return ByteOperation.copyFromColumnMajorOrderArray(state);
+	}
 
     public void subBytes(){
         for(int r = 0; r < 4; r++){

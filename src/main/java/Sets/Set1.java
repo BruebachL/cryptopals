@@ -53,7 +53,7 @@ public class Set1 {
         String hexString3 = "1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736";
         for (int i = 0; i < 255; i++) {
             byte[] decoded = XORCypher.single(HexUtils.decodeHexString(hexString3), (byte) i);
-            double score = StringUtils.scoreStrings(decoded);
+            double score = StringUtils.scoreString(decoded);
             String line = new String(decoded, StandardCharsets.UTF_8);
             if (score > 1950)
                 System.out.println(line + " - Score: " + score + " Key: " + (char) i);
@@ -68,7 +68,7 @@ public class Set1 {
         while ((c4Line = c4Input.readLine()) != null) {
             for (int i = 0; i < 255; i++) {
                 byte[] decoded = XORCypher.single(HexUtils.decodeHexString(c4Line), (byte) i);
-                double score = StringUtils.scoreStrings(decoded);
+                double score = StringUtils.scoreString(decoded);
                 String line = new String(decoded, StandardCharsets.UTF_8);
                 if (score > 1950)
                     System.out.println("Line " + c4LineNum + ": " + line + " - Score: " + score + " Key: " + (char) i);
@@ -152,8 +152,8 @@ public class Set1 {
 
     public static void challenge7() {
         byte[] cypherText = FileUtils.readBase64("src/main/resources/cyphertexts/7.txt");
-        AESECB aes = new AESECB(128);
-        cypherText = aes.decrypt(cypherText, new AESKey("YELLOW SUBMARINE".getBytes()));
+        AESECB aes = new AESECB(new AESKey("YELLOW SUBMARINE".getBytes()));
+        cypherText = aes.decrypt(cypherText);
         for (byte plainChar : cypherText) {
             System.out.print((char) plainChar);
         }

@@ -30,18 +30,19 @@ public class CBCPaddingOracle {
 		"MDAwMDA5aXRoIG15IHJhZy10b3AgZG93biBzbyBteSBoYWlyIGNhbiBibG93" };
 
 	public CBCPaddingOracle() {
-		this.aes = new AESCBC(128);
 		this.key = new AESKey();
+		this.aes = new AESCBC(this.key);
+
 	}
 
 	public AESSessionToken chooseAndEncryptSessionToken() {
 		String sessionToken = sessionTokens[(int) (Math.random() * sessionTokens.length)];
 		byte[] paddedPlain = ByteOperation.padPKCS7(sessionToken.getBytes(), 16);
-		return aes.encryptSessionToken(paddedPlain, key, ByteOperation.generateRandomByteArray(16));
+		return aes.encryptSessionToken(paddedPlain, ByteOperation.generateRandomByteArray(16));
 	}
 
 	public boolean consumeEncryptedSessionToken(AESSessionToken encryptedSessionToken) throws BadPaddingException {
-		AESSessionToken decryptedSessionToken = aes.decryptSessionToken(encryptedSessionToken.getMessage(), key,
+		AESSessionToken decryptedSessionToken = aes.decryptSessionToken(encryptedSessionToken.getMessage(),
 			encryptedSessionToken.getIV());
 		ByteOperation.stripAndValidatePKCS7padding(decryptedSessionToken.getMessage(), 16);
 		return true;

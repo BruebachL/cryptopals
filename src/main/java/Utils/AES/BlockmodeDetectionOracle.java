@@ -29,10 +29,9 @@ public class BlockmodeDetectionOracle {
 
         useEcb = (int) (Math.random() * 2);
         if(useEcb == 1){
-            return new AESECB(128).encrypt(messageWithNonsensePadding, randomKey);
+            return new AESECB(randomKey).encrypt(messageWithNonsensePadding);
         } else {
-            return new AESCBC(128).encrypt(messageWithNonsensePadding, randomKey,
-                ByteOperation.generateRandomByteArray(16));
+            return new AESCBC(randomKey).encrypt(messageWithNonsensePadding, ByteOperation.generateRandomByteArray(16));
         }
     }
 
@@ -41,7 +40,7 @@ public class BlockmodeDetectionOracle {
         System.arraycopy(message, 0, forcedWithUnknownPlainTextAppended, 0, message.length);
         System.arraycopy(toAppend, 0, forcedWithUnknownPlainTextAppended, message.length, toAppend.length);
 
-        this.encryptedMessage = new AESECB(128).encrypt(forcedWithUnknownPlainTextAppended, randomKey);
+        this.encryptedMessage = new AESECB(randomKey).encrypt(forcedWithUnknownPlainTextAppended);
     }
 
     public void prependThenAppendThenEncryptUsingECBMode(byte[] message, byte[] toAppend){
@@ -50,7 +49,7 @@ public class BlockmodeDetectionOracle {
         System.arraycopy(messageWithRandomBytesPrepended, 0, forcedWithUnknownPlainTextAppended, 0, messageWithRandomBytesPrepended.length);
         System.arraycopy(toAppend, 0, forcedWithUnknownPlainTextAppended, messageWithRandomBytesPrepended.length, toAppend.length);
 
-        this.encryptedMessage = new AESECB(128).encrypt(forcedWithUnknownPlainTextAppended, randomKey);
+        this.encryptedMessage = new AESECB(randomKey).encrypt(forcedWithUnknownPlainTextAppended);
     }
 
     public byte[] prependDeterminedAmountOfRandomBytes(byte[] in){

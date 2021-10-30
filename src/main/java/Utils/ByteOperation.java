@@ -1,12 +1,12 @@
 package Utils;
 
 import com.google.common.primitives.UnsignedBytes;
-import jdk.jfr.Unsigned;
 
 import javax.crypto.BadPaddingException;
 import java.nio.ByteBuffer;
 import java.security.SecureRandom;
 import java.util.Arrays;
+import java.util.Comparator;
 
 public class ByteOperation {
 
@@ -106,22 +106,46 @@ public class ByteOperation {
         return out;
     }
 
-    public static byte[] getBlock(byte[] in, int blockNumber){
+    public static byte[] getBlock(byte[] in, int blockNumber) {
         byte[][] splitIn = splitByteArrayInto16ByteChunkHyperArray(in);
         return splitIn[blockNumber];
     }
 
-    public static byte[][] splitByteArrayInto16ByteChunkHyperArray(byte[] in){
-        if(in.length % 16 != 0){
-            throw new IllegalArgumentException("Can't split byte array of length " + in.length + " into 16 byte chunks. Leftover bytes: " + in.length % 16);
+    public static byte[][] transposeByteMatrix(byte[][] input) {
+        int length = Arrays.stream(input).max(Comparator.comparingInt(a -> a.length)).get().length;
+        byte[][] transposed = new byte[length][input.length];
+        for (int i = 0; i < input.length; i++) {
+            for (int j = 0; j < input[i].length; j++) {
+                transposed[j][i] = input[i][j];
+            }
+        }
+        return transposed;
+    }
+
+    public static byte[][] truncateByteMatrix(byte[][] input) {
+        int length = Arrays.stream(input).min(Comparator.comparingInt(a -> a.length)).get().length;
+        byte[][] truncated = new byte[input.length][length];
+        for (int i = 0; i < input.length; i++) {
+            for (int j = 0; j < length; j++) {
+                truncated[i][j] = input[i][j];
+            }
+        }
+        return truncated;
+    }
+
+    public static byte[][] splitByteArrayInto16ByteChunkHyperArray(byte[] in) {
+        if (in.length % 16 != 0) {
+            throw new IllegalArgumentException(
+                "Can't split byte array of length " + in.length + " into 16 byte chunks. Leftover bytes: "
+                    + in.length % 16);
         }
         byte[][] out = new byte[in.length / 16][16];
-        for(int i = 0; i < in.length / 16; i++){
-            for(int c = 0; c < 16; c++){
+        for (int i = 0; i < in.length / 16; i++) {
+            for (int c = 0; c < 16; c++) {
                 out[i][c] = in[(i * 16) + c];
             }
         }
-    return out;
+        return out;
     }
 
     public static byte[] merge16ByteChunkHyperArray(byte[][] in){
