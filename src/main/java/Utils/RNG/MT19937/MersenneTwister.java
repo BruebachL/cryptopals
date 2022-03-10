@@ -3,6 +3,7 @@ package Utils.RNG.MT19937;
 import Utils.BitPrinter;
 
 import java.util.ArrayList;
+import java.util.BitSet;
 
 public class MersenneTwister {
 
@@ -104,15 +105,19 @@ public class MersenneTwister {
 
 		BitPrinter printer = new BitPrinter(y);
 		System.out.println("--------------- Y0 -----------------");
+		System.out.println("Shifting by " + u + " and masking with " + BitPrinter.intToString(d, 4));
 		y = printer.firstRightShift(u).thenAnd(d).thenXOR(y).finish();
 		printer = new BitPrinter(y);
 		System.out.println("--------------- Y1 -----------------");
+		System.out.println("Shifting by " + s + " and masking with " + BitPrinter.intToString(b, 4));
 		y = printer.firstLeftShift(s).thenAnd(b).thenXOR(y).finish();
 		printer = new BitPrinter(y);
 		System.out.println("--------------- Y2 -----------------");
+		System.out.println("Shifting by " + t + " and masking with " + BitPrinter.intToString(c, 4));
 		y = printer.firstLeftShift(t).thenAnd(c).thenXOR(y).finish();
 		printer = new BitPrinter(y);
 		System.out.println("--------------- Y3 -----------------");
+		System.out.println("Shifting by " + l);
 		y = printer.firstRightShift(l).thenXOR(y).finish();
 
 		index += 1;
@@ -157,14 +162,44 @@ public class MersenneTwister {
 		int y3 = printer.firstRightShift(l).thenXOR(o).finish();
 		printer = new BitPrinter(y3);
 		System.out.println("=================UNTEMPERING Y2===================");
-		int y2 = printer.firstLeftShift(t).thenAnd(c).thenXOR(y3).finish();
+		int y2print = printer.firstLeftShift(t).thenAnd(c).thenXOR(y3).finish();
+		int y2 = leftShiftUntemper(y3, t, c);
+		System.out.println(y2);
 		printer = new BitPrinter(y2);
 		System.out.println("=================UNTEMPERING Y1===================");
-		int y1 = printer.firstLeftShift(s).thenAnd(b).thenXOR(y2).finish();
+		int y1printer = printer.firstLeftShift(s).thenAnd(b).thenXOR(y2).finish();
+		int y1 = leftShiftUntemper(y2, s, b);
+		System.out.println(y1);
 		printer = new BitPrinter(y1);
 		System.out.println("=================UNTEMPERING Y0===================");
 		int y0 = printer.firstRightShift(u).thenAnd(d).thenXOR(y1).finish();
 		return y0;
 	}
 
+	/*
+	The essential insight here is that our shift amount matches the 0's on the masks. Because shifting results in 0's and
+	the lsb of the mask are also 0's, the [shift]-lsb's of y' are equal to [shift]-lsb of y. y' & 0 = 0. y' ^ 0 = y;
+	Now that we have [shift]-lsb's, we can calculate the [shift * 2] lsb's of y, by taking the [shift * 2]-lsb's of y'
+	 & with the [shift * 2]-lsb's of the known mask and XOR with the [shift]-lsb's we just discovered.
+	 */
+
+	public static int leftShiftUntemper(int number, int shift, int mask) {
+		// WDYM Java is verbose?
+		BitSet reversedBitSet = BitSet.valueOf(new long[] {
+			Integer.parseUnsignedInt(new StringBuilder(BitPrinter.intToString(number, 32)).reverse().toString(), 2) });
+		BitSet reversedMask = BitSet.valueOf(new long[] {
+			Integer.parseUnsignedInt(new StringBuilder(BitPrinter.intToString(mask, 32)).reverse().toString(), 2) });
+		BitSet recoveredBits = new BitSet(32);
+		for (int i = 0; i < 32; i++) {
+			if (i < shift) {
+				recoveredBits.set(i, reversedBitSet.get(i));
+			}
+			else {
+				recoveredBits.set(i, reversedBitSet.get(i) ^ (reversedMask.get(i) & recoveredBits.get(i - shift)));
+			}
+		}
+		return Integer.parseUnsignedInt(
+			new StringBuilder(BitPrinter.intToString((int) recoveredBits.toLongArray()[0], 32)).reverse().toString(),
+			2);
+	}
 }

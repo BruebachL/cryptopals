@@ -212,5 +212,6 @@ public class StringUtils {
                 System.out.println();
             }
         }
+        System.out.println(ANSI_RESET);
     }
 }
