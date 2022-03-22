@@ -37,107 +37,132 @@ public class BitPrinter {
 
 	int state;
 
-	public BitPrinter(int initialState) {
+	public boolean verbose = false;
+
+	public BitPrinter(int initialState, boolean verbose) {
 		state = initialState;
+		this.verbose = verbose;
 	}
 
 	public BitPrinter firstAnd(int andWith) {
-		System.out.println(state + " & " + andWith);
-		formatPrintHighlighted(state, ANSI_BLACK, ANSI_WHITE, ANSI_LIGHT_CYAN_BACKGROUND, ANSI_CYAN_BACKGROUND);
-		System.out.println(" --> Decimal: " + state);
+		if (verbose) {
+			System.out.println(state + " & " + andWith);
+			formatPrintHighlighted(state, ANSI_BLACK, ANSI_WHITE, ANSI_LIGHT_CYAN_BACKGROUND, ANSI_CYAN_BACKGROUND);
+			System.out.println(" --> Decimal: " + state);
+		}
 		return thenAnd(andWith);
 	}
 
 	public BitPrinter thenAnd(int andWith) {
-		System.out.println(" & ");
-		formatPrintHighlighted(andWith, ANSI_BLACK, ANSI_WHITE, ANSI_LIGHT_RED_BACKGROUND, ANSI_RED_BACKGROUND);
-		System.out.println(" --> Decimal: " + andWith);
-		System.out.println("------------------------------------------");
-		formatPrintHighlighted(state & andWith, ANSI_BLACK, ANSI_WHITE, ANSI_LIGHT_PURPLE_BACKGROUND,
-			ANSI_PURPLE_BACKGROUND);
-		System.out.println(" --> Decimal: " + (state & andWith));
+		if (verbose) {
+			System.out.println(" & ");
+			formatPrintHighlighted(andWith, ANSI_BLACK, ANSI_WHITE, ANSI_LIGHT_RED_BACKGROUND, ANSI_RED_BACKGROUND);
+			System.out.println(" --> Decimal: " + andWith);
+			System.out.println("------------------------------------------");
+			formatPrintHighlighted(state & andWith, ANSI_BLACK, ANSI_WHITE, ANSI_LIGHT_PURPLE_BACKGROUND,
+				ANSI_PURPLE_BACKGROUND);
+			System.out.println(" --> Decimal: " + (state & andWith));
+		}
 		this.state = state & andWith;
 		return this;
 	}
 
 	public BitPrinter firstXOR(int XORWith) {
-		System.out.println(state + " ^ " + XORWith);
-		formatPrintHighlighted(state, ANSI_BLACK, ANSI_WHITE, ANSI_LIGHT_BLUE_BACKGROUND, ANSI_BLUE_BACKGROUND);
-		System.out.println(" --> Decimal: " + state);
+		if (verbose) {
+			System.out.println(state + " ^ " + XORWith);
+			formatPrintHighlighted(state, ANSI_BLACK, ANSI_WHITE, ANSI_LIGHT_BLUE_BACKGROUND, ANSI_BLUE_BACKGROUND);
+			System.out.println(" --> Decimal: " + state);
+		}
 		return thenXOR(XORWith);
 	}
 
 	public BitPrinter thenXOR(int XORWith) {
-		System.out.println(" ^");
-		formatPrintHighlighted(XORWith, ANSI_BLACK, ANSI_WHITE, ANSI_LIGHT_RED_BACKGROUND, ANSI_RED_BACKGROUND);
-		System.out.println(" --> Decimal: " + XORWith);
-		System.out.println("------------------------------------------");
-		formatPrintHighlighted(state ^ XORWith, ANSI_BLACK, ANSI_WHITE, ANSI_LIGHT_PURPLE_BACKGROUND,
-			ANSI_PURPLE_BACKGROUND);
-		System.out.println(" --> Result: " + (state ^ XORWith));
+		if (verbose) {
+			System.out.println(" ^");
+			formatPrintHighlighted(XORWith, ANSI_BLACK, ANSI_WHITE, ANSI_LIGHT_RED_BACKGROUND, ANSI_RED_BACKGROUND);
+			System.out.println(" --> Decimal: " + XORWith);
+			System.out.println("------------------------------------------");
+			formatPrintHighlighted(state ^ XORWith, ANSI_BLACK, ANSI_WHITE, ANSI_LIGHT_PURPLE_BACKGROUND,
+				ANSI_PURPLE_BACKGROUND);
+			System.out.println(" --> Result: " + (state ^ XORWith));
+		}
 		this.state = state ^ XORWith;
 		return this;
 	}
 
 	public BitPrinter firstRightShift(int shiftBy) {
-		System.out.println("Right shifting " + state + " by " + shiftBy);
-		formatPrintHighlighted(state, ANSI_BLACK, ANSI_WHITE, ANSI_LIGHT_RED_BACKGROUND, ANSI_RED_BACKGROUND);
-		System.out.println(" --> Decimal: " + state);
+		if (verbose) {
+			System.out.println("Right shifting " + state + " by " + shiftBy);
+			formatPrintHighlighted(state, ANSI_BLACK, ANSI_WHITE, ANSI_LIGHT_RED_BACKGROUND, ANSI_RED_BACKGROUND);
+			System.out.println(" --> Decimal: " + state);
+		}
 		return thenRightShift(shiftBy);
 	}
 
 	public BitPrinter thenRightShift(int shiftBy) {
-		System.out.println(" >>> " + shiftBy);
-		for (int i = 0; i < 32; i++) {
-			if (i + 1 != shiftBy) {
-				System.out.print("-");
+		if (verbose) {
+			System.out.println(" >>> " + shiftBy);
+			for (int i = 0; i < 32; i++) {
+				if (i + 1 != shiftBy) {
+					System.out.print("-");
+				}
+				else {
+					System.out.print("|");
+				}
+				if ((i + 1) % 4 == 0) {
+					System.out.print(((i + 1)) % 10);
+				}
 			}
-			else {
-				System.out.print("|");
-			}
-			if ((i + 1) % 4 == 0) {
-				System.out.print(((i + 1)) % 10);
-			}
+			System.out.println();
+			formatPrintRightShiftHighlighted(state >>> shiftBy, shiftBy);
+			System.out.println(" --> Decimal:  " + (state >>> shiftBy));
 		}
-		System.out.println();
-		formatPrintRightShiftHighlighted(state >>> shiftBy, shiftBy);
-		System.out.println(" --> Decimal:  " + (state >>> shiftBy));
 		this.state = state >>> shiftBy;
 		return this;
 	}
 
 	public BitPrinter firstLeftShift(int shiftBy) {
-		System.out.println("Left shifting " + state + " by " + shiftBy);
-		formatPrintHighlighted(state, ANSI_BLACK, ANSI_WHITE, ANSI_LIGHT_BLUE_BACKGROUND, ANSI_BLUE_BACKGROUND);
-		System.out.println(" --> Decimal: " + state);
+		if (verbose) {
+			System.out.println("Left shifting " + state + " by " + shiftBy);
+			formatPrintHighlighted(state, ANSI_BLACK, ANSI_WHITE, ANSI_LIGHT_BLUE_BACKGROUND, ANSI_BLUE_BACKGROUND);
+			System.out.println(" --> Decimal: " + state);
+		}
 		return thenLeftShift(shiftBy);
 	}
 
 	public BitPrinter thenLeftShift(int shiftBy) {
-		System.out.println(" << " + shiftBy);
-		for (int i = 0; i < 32; i++) {
-			if (32 - (i + 1) != shiftBy) {
-				System.out.print("-");
+		if (verbose) {
+			System.out.println(" << " + shiftBy);
+			for (int i = 0; i < 32; i++) {
+				if (32 - (i + 1) != shiftBy) {
+					System.out.print("-");
+				}
+				else {
+					System.out.print("|");
+				}
+				if ((i + 1) % 4 == 0) {
+					System.out.print((32 - (i + 1)) % 10);
+				}
 			}
-			else {
-				System.out.print("|");
-			}
-			if ((i + 1) % 4 == 0) {
-				System.out.print((32 - (i + 1)) % 10);
-			}
+			System.out.println();
+			formatPrintHighlighted(state << shiftBy, ANSI_BLACK, ANSI_WHITE, ANSI_LIGHT_BLUE_BACKGROUND,
+				ANSI_BLUE_BACKGROUND);
+			System.out.println(" --> Decimal: " + (state << shiftBy));
 		}
-		System.out.println();
-		formatPrintHighlighted(state << shiftBy, ANSI_BLACK, ANSI_WHITE, ANSI_LIGHT_BLUE_BACKGROUND,
-			ANSI_BLUE_BACKGROUND);
-		System.out.println(" --> Decimal: " + (state << shiftBy));
 		this.state = state << shiftBy;
 		return this;
 	}
 
 	public int finish() {
-		System.out.print(ANSI_RED);
-		System.out.println("================================");
-		System.out.println(ANSI_RESET);
+		if (verbose) {
+			System.out.print(ANSI_RED);
+			System.out.println("================================");
+			System.out.println(ANSI_RESET);
+		}
+		return state;
+	}
+
+	public int getState() {
 		return state;
 	}
 

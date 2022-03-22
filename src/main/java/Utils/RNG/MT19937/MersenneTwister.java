@@ -1,6 +1,7 @@
 package Utils.RNG.MT19937;
 
 import Utils.BitPrinter;
+import Utils.ByteOperation;
 
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -34,8 +35,27 @@ public class MersenneTwister {
 	private final int lowerMask = (1 << separationPoint) - 1;
 	private final int upperMask = ~lowerMask >>> wordSizeInBits;
 
+	private static boolean verboseBitPrinter = false;
+
 	public MersenneTwister() {
 		setSeed(System.currentTimeMillis());
+	}
+
+	public MersenneTwister(int seed) {
+		setSeed(seed);
+	}
+
+	public MersenneTwister(long seed) {
+		setSeed(seed);
+	}
+
+	public MersenneTwister(int[] seed) {
+		setSeed(seed);
+	}
+
+	public void setState(int[] state) {
+		this.state = state;
+		this.index = 0;
 	}
 
 	private void setSeed(int seed) {
@@ -101,28 +121,63 @@ public class MersenneTwister {
 
 		int y = state[index];
 
-		System.out.println("The real number is " + y);
-
-		BitPrinter printer = new BitPrinter(y);
-		System.out.println("--------------- Y0 -----------------");
-		System.out.println("Shifting by " + u + " and masking with " + BitPrinter.intToString(d, 4));
+		BitPrinter printer = new BitPrinter(y, verboseBitPrinter);
+		//System.out.println("--------------- Y0 -----------------");
+		//System.out.println("Shifting by " + u + " and masking with " + BitPrinter.intToString(d, 4));
 		y = printer.firstRightShift(u).thenAnd(d).thenXOR(y).finish();
-		printer = new BitPrinter(y);
-		System.out.println("--------------- Y1 -----------------");
-		System.out.println("Shifting by " + s + " and masking with " + BitPrinter.intToString(b, 4));
+		printer = new BitPrinter(y, verboseBitPrinter);
+		//System.out.println("--------------- Y1 -----------------");
+		//System.out.println("Shifting by " + s + " and masking with " + BitPrinter.intToString(b, 4));
 		y = printer.firstLeftShift(s).thenAnd(b).thenXOR(y).finish();
-		printer = new BitPrinter(y);
-		System.out.println("--------------- Y2 -----------------");
-		System.out.println("Shifting by " + t + " and masking with " + BitPrinter.intToString(c, 4));
+		printer = new BitPrinter(y, verboseBitPrinter);
+		//System.out.println("--------------- Y2 -----------------");
+		//System.out.println("Shifting by " + t + " and masking with " + BitPrinter.intToString(c, 4));
 		y = printer.firstLeftShift(t).thenAnd(c).thenXOR(y).finish();
-		printer = new BitPrinter(y);
-		System.out.println("--------------- Y3 -----------------");
-		System.out.println("Shifting by " + l);
+		printer = new BitPrinter(y, verboseBitPrinter);
+		//System.out.println("--------------- Y3 -----------------");
+		//System.out.println("Shifting by " + l);
 		y = printer.firstRightShift(l).thenXOR(y).finish();
 
 		index += 1;
-		System.out.println("This is o.");
-		printer = new BitPrinter(y);
+		//System.out.println("This is o.");
+		printer = new BitPrinter(y, verboseBitPrinter);
+		return printer.firstRightShift(wordSizeInBits).finish();
+	}
+
+	public int extractNumber(boolean verbose) {
+		if (index >= degreeOfRecurrence) {
+			if (verbose) {
+				System.out.println("==================Twisting======================");
+			}
+			twist();
+		}
+
+		int y = state[index];
+
+		if (verbose) {
+			System.out.println("The real number is " + y + " at index: " + index);
+		}
+
+		BitPrinter printer = new BitPrinter(y, verboseBitPrinter);
+		//System.out.println("--------------- Y0 -----------------");
+		//System.out.println("Shifting by " + u + " and masking with " + BitPrinter.intToString(d, 4));
+		y = printer.firstRightShift(u).thenAnd(d).thenXOR(y).finish();
+		printer = new BitPrinter(y, verboseBitPrinter);
+		//System.out.println("--------------- Y1 -----------------");
+		//System.out.println("Shifting by " + s + " and masking with " + BitPrinter.intToString(b, 4));
+		y = printer.firstLeftShift(s).thenAnd(b).thenXOR(y).finish();
+		printer = new BitPrinter(y, verboseBitPrinter);
+		//System.out.println("--------------- Y2 -----------------");
+		//System.out.println("Shifting by " + t + " and masking with " + BitPrinter.intToString(c, 4));
+		y = printer.firstLeftShift(t).thenAnd(c).thenXOR(y).finish();
+		printer = new BitPrinter(y, verboseBitPrinter);
+		//System.out.println("--------------- Y3 -----------------");
+		//System.out.println("Shifting by " + l);
+		y = printer.firstRightShift(l).thenXOR(y).finish();
+
+		index += 1;
+		//System.out.println("This is o.");
+		printer = new BitPrinter(y, verboseBitPrinter);
 		return printer.firstRightShift(wordSizeInBits).finish();
 	}
 
@@ -138,6 +193,93 @@ public class MersenneTwister {
 		index = 0;
 	}
 
+	public byte[] encrypt(byte[] plaintext) {
+		int[] keystream = new int[4];
+		byte[] output = new byte[plaintext.length];
+		for (int i = 0; i < plaintext.length; ) {
+			if (i % 4 == 0) {
+				keystream = getKeyStream();
+			}
+			for (int j = 0; j < 4; j++) {
+				if (i + j < plaintext.length) {
+					output[i] = (byte) (plaintext[i] ^ (byte) keystream[j]);
+					i++;
+				}
+			}
+		}
+		return output;
+	}
+
+	public byte[] encrypt(byte[] plaintext, boolean verbose) {
+		int[] keystream = new int[4];
+		byte[] output = new byte[plaintext.length];
+		for (int i = 0; i < plaintext.length; ) {
+			if (i % 4 == 0) {
+				keystream = getKeyStream(verbose);
+			}
+			for (int j = 0; j < 4; j++) {
+				if (i + j < plaintext.length) {
+					output[i] = (byte) (plaintext[i] ^ (byte) keystream[j]);
+					if (verbose) {
+						System.out.println("XORING " + (byte) plaintext[i] + " with " + (byte) keystream[j]);
+					}
+					i++;
+				}
+			}
+		}
+		return output;
+	}
+
+	public int[] getKeyStream() {
+		String keyStream = String.format("%32s", Integer.toBinaryString(extractNumber())).replaceAll(" ", "0");
+		String[] keyStreamChunks = new String[4];
+		for (int k = 0; k < 4; k++) {
+			keyStreamChunks[k] = keyStream.substring(k * 8, (k + 1) * 8);
+		}
+		int[] keystreamArray = new int[4];
+		for (int k = 0; k < 4; k++) {
+			keystreamArray[k] = Integer.parseInt(keyStreamChunks[k], 2);
+		}
+		return keystreamArray;
+	}
+
+	public int[] getKeyStream(boolean verbose) {
+		String keyStream = String.format("%32s", Integer.toBinaryString(extractNumber(verbose))).replaceAll(" ", "0");
+		String[] keyStreamChunks = new String[4];
+		for (int k = 0; k < 4; k++) {
+			keyStreamChunks[k] = keyStream.substring(k * 8, (k + 1) * 8);
+		}
+		int[] keystreamArray = new int[4];
+		for (int k = 0; k < 4; k++) {
+			keystreamArray[k] = Integer.parseInt(keyStreamChunks[k], 2);
+		}
+		return keystreamArray;
+	}
+
+	public String getPasswordResetToken(int length) {
+		char[] passwordResetToken = new char[length];
+		int j = 0;
+		int[] keyStream = getKeyStream();
+		for (int i = 0; i < length; i++) {
+			if (j % 4 == 0) {
+				keyStream = getKeyStream();
+				j = 0;
+			}
+			char randomChar = (char) keyStream[j];
+			j++;
+			while (!(randomChar >= 'A' && randomChar <= 'Z')) {
+				if (j % 4 == 0) {
+					keyStream = getKeyStream();
+					j = 0;
+				}
+				randomChar = (char) keyStream[j];
+				j++;
+			}
+			passwordResetToken[i] = randomChar;
+		}
+		return new String(passwordResetToken);
+	}
+
 	public static int setSeedAndWait() throws InterruptedException {
 		for (int i = 0; i < (Math.random() * 960) + 40; i++) {
 			Thread.sleep(1000);
@@ -149,31 +291,68 @@ public class MersenneTwister {
 		return mersenneTwister.extractNumber();
 	}
 
-	public static int setSeedAndWait(long seed) throws InterruptedException {
-		MersenneTwister mersenneTwister = new MersenneTwister();
-		mersenneTwister.setSeed(seed);
-		return mersenneTwister.extractNumber();
+	public static long checkIfTwisterWasSeededWithinTimeFrame(int producedNumber, long startTime,
+		long timeFrameinSeconds) {
+		long millisecondsBehind = 0L;
+		int searching = 0;
+		while (searching != producedNumber && millisecondsBehind < timeFrameinSeconds * 1000) {
+			millisecondsBehind++;
+			searching = new MersenneTwister(startTime - millisecondsBehind).extractNumber();
+		}
+		return startTime - millisecondsBehind;
+	}
+
+	public static long checkIfPasswordResetTokenCameFromTwisterSeededWithinTimeFrame(String passwordResetToken,
+		long startTime, long timeFrameinSeconds) {
+		long millisecondsBehind = 0L;
+		timeFrameinSeconds *= 1000;
+		String producedToken = new MersenneTwister(startTime - millisecondsBehind).getPasswordResetToken(
+			passwordResetToken.length());
+		while (!(producedToken.equals(passwordResetToken)) && millisecondsBehind < timeFrameinSeconds) {
+			millisecondsBehind++;
+			producedToken = new MersenneTwister(startTime - millisecondsBehind).getPasswordResetToken(
+				passwordResetToken.length());
+		}
+		return millisecondsBehind == timeFrameinSeconds ? -1 : startTime - millisecondsBehind;
+	}
+
+	public static int bruteforceSeed(byte[] encrypted, byte[] knownPlaintext, boolean isPrefixedByUnknown) {
+		byte[] forgedPlaintext = ByteOperation.forgePlaintext(encrypted.length, knownPlaintext, (byte) 'A',
+			isPrefixedByUnknown);
+		for (int seed = 0; seed < Math.pow(2, 16); seed++) {
+			if (seed > Math.pow(2, 16)) {
+				break; // We've exceeded the maximum seed (16-Bit)
+			}
+			if (ByteOperation.compareByteArrays(ByteOperation.splitToEnd(encrypted, knownPlaintext.length),
+				ByteOperation.splitToEnd(new MersenneTwister(seed).encrypt(forgedPlaintext), knownPlaintext.length))) {
+				return seed;
+			}
+		}
+		return -1;
 	}
 
 	public static int untemper(int o) {
 		ArrayList<Integer> bits = new ArrayList<>();
-		BitPrinter printer = new BitPrinter(o);
-		System.out.println("=================UNTEMPERING Y3===================");
-		int y3 = printer.firstRightShift(l).thenXOR(o).finish();
-		printer = new BitPrinter(y3);
-		System.out.println("=================UNTEMPERING Y2===================");
-		int y2print = printer.firstLeftShift(t).thenAnd(c).thenXOR(y3).finish();
-		int y2 = leftShiftUntemper(y3, t, c);
-		System.out.println(y2);
-		printer = new BitPrinter(y2);
-		System.out.println("=================UNTEMPERING Y1===================");
-		int y1printer = printer.firstLeftShift(s).thenAnd(b).thenXOR(y2).finish();
-		int y1 = leftShiftUntemper(y2, s, b);
-		System.out.println(y1);
-		printer = new BitPrinter(y1);
-		System.out.println("=================UNTEMPERING Y0===================");
-		int y0 = printer.firstRightShift(u).thenAnd(d).thenXOR(y1).finish();
-		return y0;
+		BitPrinter printer = new BitPrinter(o, verboseBitPrinter);
+		//System.out.println("=================UNTEMPERING Y3===================");
+		printer = new BitPrinter(printer.firstRightShift(l).thenXOR(o).finish(), verboseBitPrinter);
+		int y3 = printer.getState();
+		//System.out.println("=================UNTEMPERING Y2===================");
+		printer = new BitPrinter(printer.firstLeftShift(t).thenAnd(c).thenXOR(y3).finish(), verboseBitPrinter);
+		int y2 = leftShiftUntemper(printer.getState(), t, c);
+		//System.out.println(y2);
+		printer = new BitPrinter(y2, verboseBitPrinter);
+		//System.out.println("=================UNTEMPERING Y1===================");
+		for (int i = 0; i < 32; i += s) {
+			printer = new BitPrinter(printer.firstLeftShift(s).thenAnd(b).thenXOR(y2).finish(), verboseBitPrinter);
+		}
+		printer = new BitPrinter(printer.getState(), verboseBitPrinter);
+		int y1 = printer.getState();
+		//System.out.println("=================UNTEMPERING Y0===================");
+		for (int i = 0; i < 32; i += u) {
+			printer = new BitPrinter(printer.firstRightShift(u).thenXOR(y1).finish(), verboseBitPrinter);
+		}
+		return printer.getState();
 	}
 
 	/*

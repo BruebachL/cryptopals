@@ -172,10 +172,63 @@ public class ByteOperation {
         return -1;
     }
 
-    public static byte[] generateRandomByteArray(int length){
+    public static byte[] generateRandomByteArray(int length) {
         SecureRandom secureRandom = new SecureRandom();
         byte[] randomBytes = new byte[length];
         secureRandom.nextBytes(randomBytes);
         return randomBytes;
     }
+
+    public static byte[] prefixByteArrayWithRandomByteAmount(byte[] toPrefix) {
+        int randomPrefixAmount = (int) (Math.random() * 100);
+        byte[] prefixed = new byte[randomPrefixAmount + toPrefix.length];
+        for (int i = 0; i < randomPrefixAmount; i++) {
+            prefixed[i] = (byte) (Math.random() * 256);
+        }
+        System.arraycopy(toPrefix, 0, prefixed, randomPrefixAmount, toPrefix.length);
+        return prefixed;
+    }
+
+    public static boolean compareByteArrays(byte[] b1, byte[] b2) {
+        if (b1.length != b2.length) {
+            throw new IllegalArgumentException(
+                "Bytearrays to compare must match in length. B1 Length:" + b1.length + " B2 Length: " + b2.length);
+        }
+        for (int i = 0; i < b1.length; i++) {
+            if (b1[i] != b2[i]) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public static byte[] splitToEnd(byte[] toSplit, int splitPointFromEnd) {
+        byte[] output = new byte[toSplit.length - splitPointFromEnd];
+        System.arraycopy(toSplit, toSplit.length - splitPointFromEnd, output, 0, splitPointFromEnd);
+        return output;
+    }
+
+    public static byte[] forgePlaintext(int plainTextTotalLength, byte[] knownPlaintext, byte padWith,
+        boolean isPrefixedByUnknown) {
+        return isPrefixedByUnknown ?
+            ByteOperation.prefixPadKnownPlaintext(knownPlaintext, plainTextTotalLength, padWith) :
+            ByteOperation.appendPadKnownPlaintext(knownPlaintext, plainTextTotalLength, padWith);
+
+    }
+
+    public static byte[] prefixPadKnownPlaintext(byte[] knownPlaintext, int lengthToPadTo, byte fillWith) {
+        byte[] forgedPlaintext = new byte[lengthToPadTo];
+        Arrays.fill(forgedPlaintext, fillWith);
+        System.arraycopy(knownPlaintext, 0, forgedPlaintext, lengthToPadTo - knownPlaintext.length,
+            knownPlaintext.length);
+        return forgedPlaintext;
+    }
+
+    public static byte[] appendPadKnownPlaintext(byte[] knownPlaintext, int lengthToPadTo, byte fillWith) {
+        byte[] forgedPlaintext = new byte[lengthToPadTo];
+        Arrays.fill(forgedPlaintext, fillWith);
+        System.arraycopy(knownPlaintext, 0, forgedPlaintext, 0, knownPlaintext.length);
+        return forgedPlaintext;
+    }
+
 }

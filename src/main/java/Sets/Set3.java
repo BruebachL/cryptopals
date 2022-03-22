@@ -8,8 +8,10 @@ import Utils.RNG.MT19937.MersenneTwister;
 
 import javax.crypto.BadPaddingException;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.Random;
 
 public class Set3 {
 
@@ -22,12 +24,14 @@ public class Set3 {
 		System.out.println();
 		challenge20();
 		System.out.println();*/
-		StringUtils.printANSIColors();
+		//		StringUtils.printANSIColors();
 		//challenge21();
-		System.out.println();
+		//System.out.println();
 		//challenge22();
-		System.out.println();
-		challenge23();
+		//System.out.println();
+		//challenge23();
+		//System.out.println();
+		challenge24();
 	}
 
 	/**
@@ -144,21 +148,65 @@ public class Set3 {
 	public static void challenge22() throws InterruptedException {
 		int lookingFor = MersenneTwister.setSeedAndWait();
 		System.out.println(lookingFor);
-		int searching = 0;
-		long timeOfStart = System.currentTimeMillis();
-		long millisecondsBehind = 0L;
-		while (searching != lookingFor) {
-			millisecondsBehind++;
-			searching = MersenneTwister.setSeedAndWait(timeOfStart - millisecondsBehind);
-		}
-		System.out.println("Found: " + searching + " generated with seed: " + (timeOfStart - millisecondsBehind));
+		long searching = MersenneTwister.checkIfTwisterWasSeededWithinTimeFrame(lookingFor, System.currentTimeMillis(),
+			60 * 10);
+		System.out.println("Found: " + lookingFor + " generated with seed: " + searching);
 	}
+
+	// Mostly verbose validation code to check if untemper and setState work
 
 	public static void challenge23() {
 		MersenneTwister mersenneTwister = new MersenneTwister();
-		mersenneTwister.setSeed(6);
-		int randomInt = mersenneTwister.extractNumber();
-		System.out.println(MersenneTwister.untemper(randomInt));
+		mersenneTwister.setSeed(69);
+		int[] extractedNumbers = new int[624];
+		int[] untemperedNumbers = new int[624];
+		int[] clonedNumbers = new int[624];
+		for (int i = 0; i < 624; i++) {
+			extractedNumbers[i] = mersenneTwister.extractNumber();
+			untemperedNumbers[i] = MersenneTwister.untemper(extractedNumbers[i]);
+			System.out.println("Extracted: " + extractedNumbers[i] + " and Untempered to: " + untemperedNumbers[i]);
+		}
+		MersenneTwister clonedTwister = new MersenneTwister();
+		clonedTwister.setState(untemperedNumbers);
+		for (int i = 0; i < 624; i++) {
+			clonedNumbers[i] = clonedTwister.extractNumber();
+			System.out.println("Extracted cloned: " + clonedNumbers[i]);
+		}
+	}
+
+	/*
+	  You can create a trivial stream cipher out of any PRNG; use it to generate a sequence of 8 bit outputs and call those outputs a keystream. XOR each byte of plaintext with each successive byte of keystream.
+	  Write the function that does this for MT19937 using a 16-bit seed. Verify that you can encrypt and decrypt properly. This code should look similar to your CTR code.
+	  Use your function to encrypt a known plaintext (say, 14 consecutive 'A' characters) prefixed by a random number of random characters.
+	  From the ciphertext, recover the "key" (the 16 bit seed).
+	  Use the same idea to generate a random "password reset token" using MT19937 seeded from the current time.
+	  Write a function to check if any given password token is actually the product of an MT19937 PRNG seeded with the current time.
+	 */
+
+	public static void challenge24() throws InterruptedException {
+		Random random = new Random();
+		int randomSeed = random.nextInt((int) Math.pow(2, 16));
+		MersenneTwister encryptTwister = new MersenneTwister(randomSeed);
+		byte[] plaintext = "AAAAAAAAAAAAAA".getBytes(StandardCharsets.UTF_8);
+		System.out.println("Random seed was :" + randomSeed + " and we bruteforced: " + MersenneTwister.bruteforceSeed(
+			encryptTwister.encrypt(ByteOperation.prefixByteArrayWithRandomByteAmount(plaintext)), plaintext, true));
+		long startTime = System.currentTimeMillis();
+		String passwordResetToken = new MersenneTwister(startTime).getPasswordResetToken(8);
+		System.out.println("Created Password Reset Token " + passwordResetToken + " at time: " + startTime);
+		long sleepTime = (long) ((Math.random() * 12 * 60)
+			* 1000); // Set this a bit higher intentionally to test failure.
+		System.out.println("Sleeping for: " + sleepTime / 1000 / 60 + " minutes");
+		Thread.sleep(sleepTime);
+		System.out.println("Resuming...");
+		long possibleSeed = MersenneTwister.checkIfPasswordResetTokenCameFromTwisterSeededWithinTimeFrame(
+			passwordResetToken, System.currentTimeMillis(), 60 * 10);
+		if (possibleSeed == -1) {
+			System.out.println(
+				"Password reset token did not come from a Mersenne Twister seeded within the last " + 10 + " Minutes.");
+		}
+		else {
+			System.out.println("Found " + passwordResetToken + " seeded with time: " + possibleSeed);
+		}
 	}
 
 }
